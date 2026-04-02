@@ -1,0 +1,238 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// Tabelas de Domínio (Lookup Tables)
+// ============================================
+
+model NaturaJuridica {
+  id         Int         @id @default(autoincrement())
+  codigo     Int         @unique
+  descricao  String
+  empresas   Empresa[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("natureza_juridica")
+}
+
+model PorteEmpresa {
+  id         Int         @id @default(autoincrement())
+  codigo     Int         @unique
+  descricao  String
+  empresas   Empresa[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("porte_empresa")
+}
+
+model Pais {
+  id         Int              @id @default(autoincrement())
+  codigo     Int              @unique
+  descricao  String
+  estabelecimentos Estabelecimento[]
+  socios     Socio[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("pais")
+}
+
+model Municipio {
+  id         Int              @id @default(autoincrement())
+  codigo     Int              @unique
+  descricao  String
+  estabelecimentos Estabelecimento[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("municipio")
+}
+
+model Cnae {
+  id         Int         @id @default(autoincrement())
+  codigo     Int         @unique
+  descricao  String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("cnae")
+}
+
+model SituacaoCadastral {
+  id         Int              @id @default(autoincrement())
+  codigo     Int              @unique
+  descricao  String
+  estabelecimentos Estabelecimento[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("situacao_cadastral")
+}
+
+model MotivoSituacaoCadastral {
+  id         Int              @id @default(autoincrement())
+  codigo     Int              @unique
+  descricao  String
+  estabelecimentos Estabelecimento[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("motivo_situacao_cadastral")
+}
+
+model IdentificadorMatrizFilial {
+  id         Int              @id @default(autoincrement())
+  codigo     Int              @unique
+  descricao  String
+  estabelecimentos Estabelecimento[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@map("identificador_matriz_filial")
+}
+
+model QualificacaoSocio {
+  id         Int        @id @default(autoincrement())
+  codigo     Int        @unique
+  descricao  String
+  socios     Socio[]
+  socios_representante Socio[] @relation("RepresentanteLegal")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("qualificacao_socio")
+}
+
+model IdentificadorSocio {
+  id         Int        @id @default(autoincrement())
+  codigo     Int        @unique
+  descricao  String
+  socios     Socio[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("identificador_socio")
+}
+
+// ============================================
+// Tabelas Principais
+// ============================================
+
+model Empresa {
+  id                      Int         @id @default(autoincrement())
+  cnpjBasico              Int         @unique
+  razaoSocial             String
+  naturezaJuridica        NaturaJuridica @relation(fields: [naturezaJuridicaId], references: [id])
+  naturezaJuridicaId      Int
+  qualificacaoResponsavel String?
+  capitalSocial           BigInt?
+  porteEmpresa            PorteEmpresa? @relation(fields: [porteEmpresaId], references: [id])
+  porteEmpresaId          Int?
+  enteFederativoResponsavel String?
+  situacaoEspecial        String?
+  dataSituacaoEspecial    DateTime?
+  estabelecimentos        Estabelecimento[]
+  dadosSimples            DadosSimples?
+  socios                  Socio[]
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+
+  @@map("empresa")
+}
+
+model Estabelecimento {
+  id                        Int         @id @default(autoincrement())
+  cnpjBasico                Int
+  cnpjOrdem                 Int
+  cnpjDv                    Int
+  empresa                   Empresa     @relation(fields: [cnpjBasico], references: [cnpjBasico])
+  identificadorMatrizFilial IdentificadorMatrizFilial @relation(fields: [identificadorMatrizFilialId], references: [id])
+  identificadorMatrizFilialId Int
+  nomeFantasia              String?
+  situacaoCadastral         SituacaoCadastral @relation(fields: [situacaoCadastralId], references: [id])
+  situacaoCadastralId       Int
+  dataSituacaoCadastral     DateTime?
+  motivoSituacaoCadastral   MotivoSituacaoCadastral? @relation(fields: [motivoSituacaoCadastralId], references: [id])
+  motivoSituacaoCadastralId Int?
+  nomeCidadeExterior        String?
+  pais                      Pais?       @relation(fields: [paisId], references: [id])
+  paisId                    Int?
+  dataInicioAtividade       DateTime?
+  cnaePrincipal             Int?
+  cnaeSecundaria            String?
+  tipoLogradouro            String?
+  logradouro                String?
+  numero                    String?
+  complemento               String?
+  bairro                    String?
+  cep                       String?
+  uf                        String?
+  municipio                 Municipio?  @relation(fields: [municipioId], references: [id])
+  municipioId               Int?
+  dddPrimario               Int?
+  telefonePrimario          String?
+  dddSecundario             Int?
+  telefoneSecundario        String?
+  dddFax                    Int?
+  fax                       String?
+  email                     String?
+  situacaoEspecial          String?
+  dataSituacaoEspecial      DateTime?
+  createdAt                 DateTime    @default(now())
+  updatedAt                 DateTime    @updatedAt
+
+  @@unique([cnpjBasico, cnpjOrdem, cnpjDv])
+  @@map("estabelecimento")
+}
+
+model DadosSimples {
+  id                    Int         @id @default(autoincrement())
+  cnpjBasico            Int         @unique
+  empresa               Empresa     @relation(fields: [cnpjBasico], references: [cnpjBasico], onDelete: Cascade)
+  opcaoSimples          Boolean?
+  dataOpcaoSimples      DateTime?
+  dataExclusaoSimples   DateTime?
+  opcaoMei              Boolean?
+  dataOpcaoMei          DateTime?
+  dataExclusaoMei       DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  @@map("dados_simples")
+}
+
+model Socio {
+  id                          Int         @id @default(autoincrement())
+  cnpjBasico                  Int
+  empresa                     Empresa     @relation(fields: [cnpjBasico], references: [cnpjBasico])
+  identificadorSocio          IdentificadorSocio @relation(fields: [identificadorSocioId], references: [id])
+  identificadorSocioId        Int
+  nomeSocio                   String
+  cnpjCpfSocio                String?
+  qualificacaoSocio           QualificacaoSocio @relation(fields: [qualificacaoSocioId], references: [id])
+  qualificacaoSocioId         Int
+  dataEntradaSociedade        DateTime?
+  pais                        Pais?       @relation(fields: [paisId], references: [id])
+  paisId                      Int?
+  representanteLegalCpf       String?
+  nomeRepresentanteLegal      String?
+  qualificacaoRepresentanteLegal QualificacaoSocio? @relation("RepresentanteLegal", fields: [qualificacaoRepresentanteLegalId], references: [id])
+  qualificacaoRepresentanteLegalId Int?
+  faixaEtaria                 Int?
+  createdAt                   DateTime    @default(now())
+  updatedAt                   DateTime    @updatedAt
+
+  @@unique([cnpjBasico, cnpjCpfSocio])
+  @@map("socio")
+}

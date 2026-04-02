@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(timeout 10 npm start)",
+      "Bash(lsof -ti:3000)",
+      "Bash(xargs kill:*)",
+      "Bash(timeout 15 npm start)",
+      "Bash(psql -U root -c \"CREATE DATABASE open_cnpj;\")",
+      "Bash(psql -U root -h localhost -c \"CREATE DATABASE open_cnpj;\")",
+      "Bash(rm -rf \"d:/Projetos/open-cnpj/prisma/migrations\")",
+      "Bash(npx prisma:*)",
+      "Bash(psql -U postgres -c \"CREATE DATABASE open_cnpj;\")",
+      "Bash(PGPASSWORD=\"123456\" psql -U postgres -h localhost -c \"CREATE DATABASE open_cnpj;\")",
+      "Bash(timeout 20 npm start)",
+      "Bash(PGPASSWORD=\"123456\" psql -U postgres -h localhost -d open_cnpj -c \"SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;\")",
+      "Bash(psql -U postgres -h localhost -d open_cnpj -c ':*)"
+    ]
+  }
+}

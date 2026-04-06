@@ -292,6 +292,13 @@ export class CnpjImportService {
                   if (global.gc) {
                     global.gc();
                   }
+
+                  // Log de memória
+                  if (global.gc && process.memoryUsage) {
+                    const mem = process.memoryUsage();
+                    const used = Math.round(mem.heapUsed / 1024 / 1024);
+                    this.logger.debug(`💾 Memória: ${used}MB`);
+                  }
                 }
 
                 // Executar inserção em background quando batch está cheio
@@ -317,13 +324,13 @@ export class CnpjImportService {
                         `📦 ${fileName} - Batch #${batchesInserted} inserido (${batchToInsert.length} registros) em ${elapsedSeconds}s`,
                       );
 
-                      // Forçar GC após inserção bem-sucedida para liberar memória
-                      if (batchesInserted % 3 === 0 && global.gc) {
+                      // SEMPRE forçar GC após inserção para liberar memória imediatamente
+                      if (global.gc) {
                         global.gc();
                       }
 
-                      // Pequeno delay para liberar conexão (10ms)
-                      return new Promise<void>((r) => setTimeout(r, 10));
+                      // Delay maior para dar tempo do GC rodar (50ms)
+                      return new Promise<void>((r) => setTimeout(r, 50));
                     })
                     .catch((error) => {
                       insertsPending--;

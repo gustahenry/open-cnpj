@@ -49,4 +49,16 @@ export class EmpresaRepository {
   async count(): Promise<number> {
     return this.prisma.empresa.count();
   }
+
+  async createMany(
+    data: Prisma.EmpresaCreateManyInput[],
+    skipDuplicates = true,
+    tx?: Prisma.TransactionClient,
+  ): Promise<Prisma.BatchPayload> {
+    const client = (tx ?? this.prisma) as any;
+    return client.empresa.createMany({
+      data,
+      skipDuplicates,
+    });
+  }
 }

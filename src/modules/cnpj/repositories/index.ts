@@ -1,0 +1,10 @@
+export { EmpresaRepository } from './empresa.repository';
+export { EstabelecimentoRepository } from './estabelecimento.repository';
+export { SocioRepository } from './socio.repository';
+export { DadosSimpleRepository } from './dados-simples.repository';
+export { NaturaJuridicaRepository } from './natureza-juridica.repository';
+export { PaisRepository } from './pais.repository';
+export { MunicipioRepository } from './municipio.repository';
+export { CnaeRepository } from './cnae.repository';
+export { ImportacaoLogRepository } from './importacao-log.repository';
+export { EstabelecimentoCnaeRepository } from './estabelecimento-cnae.repository';

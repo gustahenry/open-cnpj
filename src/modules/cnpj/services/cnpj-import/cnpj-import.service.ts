@@ -160,8 +160,8 @@ export class CnpjImportService {
       logId = log!.id;
 
       let totalRows = 0;
-      const batchSize = 5000; // Reduzido para 5k - otimizado para máquinas com 8GB
-      const chunkSize = 64 * 1024; // 64KB - tamanho do chunk de processamento
+      const batchSize = 2000; // Reduzido para 2k - máquinas com 8GB precisam de menos memória
+      const chunkSize = 32 * 1024; // 32KB - reduzido para chunks menores
       let batch: any[] = [];
       let insertPromise: Promise<void> | null = null;
       let parseError: unknown = null;

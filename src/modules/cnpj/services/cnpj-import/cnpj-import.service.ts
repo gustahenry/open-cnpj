@@ -160,7 +160,7 @@ export class CnpjImportService {
       logId = log!.id;
 
       let totalRows = 0;
-      const batchSize = 15000; // Reduzido para arquivo com 2GB - melhor controle de memória
+      const batchSize = 10000; // Reduzido para 10k - equilíbrio entre memória e conexões
       const chunkSize = 64 * 1024; // 64KB - tamanho do chunk de processamento
       let batch: any[] = [];
       let insertPromise: Promise<void> | null = null;
@@ -169,7 +169,7 @@ export class CnpjImportService {
       let batchesInserted = 0;
       let insertsPending = 0;
       const startTime = Date.now();
-      const MAX_CONCURRENT_INSERTS = 1; // Apenas 1 inserção por vez para arquivos enormes
+      const MAX_CONCURRENT_INSERTS = 1; // Apenas 1 inserção por vez para evitar esgotamento de pool
 
       const importPromise = new Promise<number>((resolve, reject) => {
         // highWaterMark aumentado para 1MB para melhor performance em arquivos grandes
@@ -318,9 +318,12 @@ export class CnpjImportService {
                       );
 
                       // Forçar GC após inserção bem-sucedida para liberar memória
-                      if (batchesInserted % 5 === 0 && global.gc) {
+                      if (batchesInserted % 3 === 0 && global.gc) {
                         global.gc();
                       }
+
+                      // Pequeno delay para liberar conexão (10ms)
+                      return new Promise<void>((r) => setTimeout(r, 10));
                     })
                     .catch((error) => {
                       insertsPending--;
@@ -383,7 +386,12 @@ export class CnpjImportService {
       if (error instanceof Error) {
         const message = error.message;
         const relevantPart = message.split('data:')[0] || message;
-        errorMessage = relevantPart.substring(0, 500).trim();
+        // Se for timeout de pool, adicionar contexto
+        if (message.includes('connection pool')) {
+          errorMessage = 'Pool de conexões esgotado - aumentar connection_limit no banco';
+        } else {
+          errorMessage = relevantPart.substring(0, 500).trim();
+        }
         stack = error.stack?.substring(0, 300) || '';
       }
 

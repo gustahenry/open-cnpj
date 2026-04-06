@@ -324,13 +324,16 @@ export class CnpjImportService {
                         `📦 ${fileName} - Batch #${batchesInserted} inserido (${batchToInsert.length} registros) em ${elapsedSeconds}s`,
                       );
 
-                      // SEMPRE forçar GC após inserção para liberar memória imediatamente
+                      // LIMPEZA AGRESSIVA: zerar array do batch
+                      batchToInsert.length = 0;
+
+                      // Forçar Full GC imediatamente (true = full GC)
                       if (global.gc) {
-                        global.gc();
+                        global.gc(true);
                       }
 
-                      // Delay maior para dar tempo do GC rodar (50ms)
-                      return new Promise<void>((r) => setTimeout(r, 50));
+                      // Delay para estabilizar (100ms para GC completar)
+                      return new Promise<void>((r) => setTimeout(r, 100));
                     })
                     .catch((error) => {
                       insertsPending--;
@@ -384,6 +387,17 @@ export class CnpjImportService {
       this.logger.debug(
         `Inserção bem-sucedida de ${rows.length} registros em ${table}`,
       );
+
+      // LIMPEZA AGRESSIVA DE MEMÓRIA
+      // 1. Zerar array
+      rows.length = 0;
+      rows = null as any;
+
+      // 2. Forçar GC imediatamente
+      if (global.gc) {
+        global.gc(true); // true = força full GC
+      }
+
       return result;
     } catch (error) {
       // Extrair apenas a mensagem de erro sem exibir os dados completos

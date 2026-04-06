@@ -8,6 +8,8 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Configuração de pool de conexões para arquivos grandes
+  // Adicione à sua DATABASE_URL: ?schema=public&pool_size=50&statement_timeout=300000
 }
 
 // ============================================
@@ -20,7 +22,7 @@ model NaturaJuridica {
   descricao  String
   empresas   Empresa[]
   createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  updatedAt  DateTime    @updatedAt @default(now())
 
   @@map("natureza_juridica")
 }
@@ -31,7 +33,7 @@ model PorteEmpresa {
   descricao  String
   empresas   Empresa[]
   createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  updatedAt  DateTime    @updatedAt @default(now())
 
   @@map("porte_empresa")
 }
@@ -43,7 +45,7 @@ model Pais {
   estabelecimentos Estabelecimento[]
   socios     Socio[]
   createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  updatedAt  DateTime         @updatedAt @default(now())
 
   @@map("pais")
 }
@@ -54,7 +56,7 @@ model Municipio {
   descricao  String
   estabelecimentos Estabelecimento[]
   createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  updatedAt  DateTime         @updatedAt @default(now())
 
   @@map("municipio")
 }
@@ -63,8 +65,9 @@ model Cnae {
   id         Int         @id @default(autoincrement())
   codigo     Int         @unique
   descricao  String
+  estabelecimentos EstabelecimentoCnae[]
   createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  updatedAt  DateTime    @updatedAt @default(now())
 
   @@map("cnae")
 }
@@ -75,7 +78,7 @@ model SituacaoCadastral {
   descricao  String
   estabelecimentos Estabelecimento[]
   createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  updatedAt  DateTime         @updatedAt @default(now())
 
   @@map("situacao_cadastral")
 }
@@ -86,7 +89,7 @@ model MotivoSituacaoCadastral {
   descricao  String
   estabelecimentos Estabelecimento[]
   createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  updatedAt  DateTime         @updatedAt @default(now())
 
   @@map("motivo_situacao_cadastral")
 }
@@ -97,7 +100,7 @@ model IdentificadorMatrizFilial {
   descricao  String
   estabelecimentos Estabelecimento[]
   createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  updatedAt  DateTime         @updatedAt @default(now())
 
   @@map("identificador_matriz_filial")
 }
@@ -109,7 +112,7 @@ model QualificacaoSocio {
   socios     Socio[]
   socios_representante Socio[] @relation("RepresentanteLegal")
   createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  updatedAt  DateTime   @updatedAt @default(now())
 
   @@map("qualificacao_socio")
 }
@@ -120,7 +123,7 @@ model IdentificadorSocio {
   descricao  String
   socios     Socio[]
   createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  updatedAt  DateTime   @updatedAt @default(now())
 
   @@map("identificador_socio")
 }
@@ -133,12 +136,12 @@ model Empresa {
   id                      Int         @id @default(autoincrement())
   cnpjBasico              Int         @unique
   razaoSocial             String
-  naturezaJuridica        NaturaJuridica @relation(fields: [naturezaJuridicaId], references: [id])
-  naturezaJuridicaId      Int
+  naturezaJuridica        NaturaJuridica @relation(fields: [naturezaJuridicaCodigo], references: [codigo])
+  naturezaJuridicaCodigo  Int
   qualificacaoResponsavel String?
-  capitalSocial           BigInt?
-  porteEmpresa            PorteEmpresa? @relation(fields: [porteEmpresaId], references: [id])
-  porteEmpresaId          Int?
+  capitalSocial           String?
+  porteEmpresa            PorteEmpresa? @relation(fields: [porteEmpresaCodigo], references: [codigo])
+  porteEmpresaCodigo      Int?
   enteFederativoResponsavel String?
   situacaoEspecial        String?
   dataSituacaoEspecial    DateTime?
@@ -157,29 +160,28 @@ model Estabelecimento {
   cnpjOrdem                 Int
   cnpjDv                    Int
   empresa                   Empresa     @relation(fields: [cnpjBasico], references: [cnpjBasico])
-  identificadorMatrizFilial IdentificadorMatrizFilial @relation(fields: [identificadorMatrizFilialId], references: [id])
-  identificadorMatrizFilialId Int
+  identificadorMatrizFilial IdentificadorMatrizFilial @relation(fields: [identificadorMatrizFilialCodigo], references: [codigo])
+  identificadorMatrizFilialCodigo Int
   nomeFantasia              String?
-  situacaoCadastral         SituacaoCadastral @relation(fields: [situacaoCadastralId], references: [id])
-  situacaoCadastralId       Int
+  situacaoCadastral         SituacaoCadastral @relation(fields: [situacaoCadastralCodigo], references: [codigo])
+  situacaoCadastralCodigo   Int
   dataSituacaoCadastral     DateTime?
-  motivoSituacaoCadastral   MotivoSituacaoCadastral? @relation(fields: [motivoSituacaoCadastralId], references: [id])
-  motivoSituacaoCadastralId Int?
+  motivoSituacaoCadastral   MotivoSituacaoCadastral? @relation(fields: [motivoSituacaoCadastralCodigo], references: [codigo])
+  motivoSituacaoCadastralCodigo Int?
   nomeCidadeExterior        String?
-  pais                      Pais?       @relation(fields: [paisId], references: [id])
-  paisId                    Int?
+  pais                      Pais?       @relation(fields: [paisCodigo], references: [codigo])
+  paisCodigo                Int?
   dataInicioAtividade       DateTime?
-  cnaePrincipal             Int?
-  cnaeSecundaria            String?
   tipoLogradouro            String?
+  cnaes                     EstabelecimentoCnae[]
   logradouro                String?
   numero                    String?
   complemento               String?
   bairro                    String?
   cep                       String?
   uf                        String?
-  municipio                 Municipio?  @relation(fields: [municipioId], references: [id])
-  municipioId               Int?
+  municipio                 Municipio?  @relation(fields: [municipioCodigo], references: [codigo])
+  municipioCodigo           Int?
   dddPrimario               Int?
   telefonePrimario          String?
   dddSecundario             Int?
@@ -216,23 +218,68 @@ model Socio {
   id                          Int         @id @default(autoincrement())
   cnpjBasico                  Int
   empresa                     Empresa     @relation(fields: [cnpjBasico], references: [cnpjBasico])
-  identificadorSocio          IdentificadorSocio @relation(fields: [identificadorSocioId], references: [id])
-  identificadorSocioId        Int
+  identificadorSocio          IdentificadorSocio @relation(fields: [identificadorSocioCodigo], references: [codigo])
+  identificadorSocioCodigo    Int
   nomeSocio                   String
   cnpjCpfSocio                String?
-  qualificacaoSocio           QualificacaoSocio @relation(fields: [qualificacaoSocioId], references: [id])
-  qualificacaoSocioId         Int
+  qualificacaoSocio           QualificacaoSocio @relation(fields: [qualificacaoSocioCodigo], references: [codigo])
+  qualificacaoSocioCodigo     Int
   dataEntradaSociedade        DateTime?
-  pais                        Pais?       @relation(fields: [paisId], references: [id])
-  paisId                      Int?
+  pais                        Pais?       @relation(fields: [paisCodigo], references: [codigo])
+  paisCodigo                  Int?
   representanteLegalCpf       String?
   nomeRepresentanteLegal      String?
-  qualificacaoRepresentanteLegal QualificacaoSocio? @relation("RepresentanteLegal", fields: [qualificacaoRepresentanteLegalId], references: [id])
-  qualificacaoRepresentanteLegalId Int?
+  qualificacaoRepresentanteLegal QualificacaoSocio? @relation("RepresentanteLegal", fields: [qualificacaoRepresentanteLegalCodigo], references: [codigo])
+  qualificacaoRepresentanteLegalCodigo Int?
   faixaEtaria                 Int?
   createdAt                   DateTime    @default(now())
   updatedAt                   DateTime    @updatedAt
 
   @@unique([cnpjBasico, cnpjCpfSocio])
   @@map("socio")
+}
+
+// ============================================
+// Rastreamento de Importações
+// ============================================
+
+enum ImportacaoStatus {
+  PENDENTE
+  IMPORTANDO
+  SUCESSO
+  ERRO
+}
+
+model ImportacaoLog {
+  id              Int              @id @default(autoincrement())
+  arquivo         String
+  pasta           String
+  tabela          String
+  status          ImportacaoStatus
+  totalRegistros  Int?
+  erroMensagem    String?
+  iniciadoEm      DateTime         @default(now())
+  finalizadoEm    DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([arquivo, pasta])
+  @@map("importacao_log")
+}
+
+// ============================================
+// Relação Estabelecimento <-> CNAE
+// ============================================
+
+model EstabelecimentoCnae {
+  id                Int             @id @default(autoincrement())
+  estabelecimento   Estabelecimento @relation(fields: [estabelecimentoId], references: [id], onDelete: Cascade)
+  estabelecimentoId Int
+  cnae              Cnae            @relation(fields: [cnaeCodigo], references: [codigo])
+  cnaeCodigo        Int
+  isPrincipal       Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+
+  @@unique([estabelecimentoId, cnaeCodigo])
+  @@map("estabelecimento_cnae")
 }
